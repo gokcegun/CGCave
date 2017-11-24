@@ -4,10 +4,12 @@ import os
 import glob
 import os.path
 import time
+import threading
 
 
 class CgCave:
     project_path = "undefined"
+    refreshthread = None
 
     def __init__(self, master):
         favicon = PhotoImage(file="images/favicon.png")
@@ -35,7 +37,7 @@ class CgCave:
         self.refresh_button.grid(row=0, column=2)
         self.refresh_button.bind("<Button-1>", self.refreshlists)
 
-        self.quitButton = Button(bottom_frame, text="Quit", command=master.quit, width=30)
+        self.quitButton = Button(bottom_frame, text="Quit", command=self.on_closing, width=30)
         self.quitButton.grid(row=0, column=1, padx=30)
 
         self.debug_button = Button(bottom_frame, text="debug", command=self.debug, width=30)
@@ -65,6 +67,12 @@ class CgCave:
 
         self.refreshlists("launch")
 
+    def timer1(self):
+
+        self.refreshthread = threading.Timer(1.0, self.timer1)
+        self.refreshthread.start()
+        self.refreshlists(self)
+
     def debug(self):
         print("debug")
 
@@ -78,7 +86,6 @@ class CgCave:
         self.filllistbox("max", self.model_list)
         list_of_files = glob.glob(CgCave.project_path + "/autoback/*.max")
         if len(list_of_files) != 0:
-            print("in if")
             last_autoback = max(list_of_files, key=os.path.getmtime)
             last_abtime = time.ctime(os.path.getmtime(last_autoback))
             self.autoback_button["text"] = "Last AutoBack: " + last_abtime
@@ -130,7 +137,14 @@ class CgCave:
                 selected_model = list_of_files[chosen_file[0]]
                 os.startfile(selected_model)
 
+    def on_closing(self):
+        self.refreshthread.cancel()
+        root.destroy()
+
+
 
 root = Tk()
 b = CgCave(root)
+b.timer1()
+root.protocol("WM_DELETE_WINDOW", b.on_closing)
 root = mainloop()
