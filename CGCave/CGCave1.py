@@ -5,11 +5,14 @@ import glob
 import os.path
 import time
 import threading
+from pathlib import Path
 
 
 class CgCave:
     project_path = "undefined"
     refreshthread = None
+
+
 
     def __init__(self, master):
         favicon = PhotoImage(file="images/favicon.png")
@@ -25,6 +28,17 @@ class CgCave:
         bottom_frame.grid(row=2, padx=20, pady=5)
         mid_rightframe = Frame(mid_frame)
         mid_rightframe.grid(column=3)
+
+        my_file = Path("lastpath.txt")
+        if my_file.is_file():
+            last_pathfile = open("lastpath.txt", "r")
+            last_pathrec = last_pathfile.read()
+        else:
+            last_path = open("lastpath.txt", "w")
+            last_path.write("c:/")
+            last_path.close()
+            last_pathfile = open("lastpath.txt", "r")
+            last_pathrec = last_pathfile.read()
 
         self.entry_1 = Entry(top_frame, width=90)
         self.entry_1.grid(row=0)
@@ -51,9 +65,6 @@ class CgCave:
         self.model_list.grid(row=0, column=2, padx=5)
         self.model_list.bind('<Double-Button-1>', self.openModel)
 
-        last_pathfile = open("lastpath.txt", "r")
-        last_pathrec = last_pathfile.read()
-
         self.entry_1.insert(END, last_pathrec)
 
         CgCave.project_path = last_pathrec
@@ -68,13 +79,15 @@ class CgCave:
         self.refreshlists("launch")
 
     def timer1(self):
-
+        print("in timer")
         self.refreshthread = threading.Timer(1.0, self.timer1)
         self.refreshthread.start()
         self.refreshlists(self)
 
+
     def debug(self):
         print("debug")
+        print("a")
 
     def launchautoback(self, event):
         list_of_files = glob.glob(CgCave.project_path + "/autoback/*.max")
@@ -82,6 +95,7 @@ class CgCave:
         os.startfile(last_autoback)
 
     def refreshlists(self, event):
+        print("in refresh")
         self.filllistbox("jpg", self.render_list)
         self.filllistbox("max", self.model_list)
         list_of_files = glob.glob(CgCave.project_path + "/autoback/*.max")
@@ -89,6 +103,7 @@ class CgCave:
             last_autoback = max(list_of_files, key=os.path.getmtime)
             last_abtime = time.ctime(os.path.getmtime(last_autoback))
             self.autoback_button["text"] = "Last AutoBack: " + last_abtime
+
 
     def filllistbox(self, file_type, list_box):
         sub_path = {
@@ -142,7 +157,7 @@ class CgCave:
         root.destroy()
 
 
-
+print("init")
 root = Tk()
 b = CgCave(root)
 b.timer1()
